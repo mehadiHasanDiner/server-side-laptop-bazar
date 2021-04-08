@@ -1,6 +1,6 @@
 const express = require('express')
 const MongoClient = require('mongodb').MongoClient;
-const ObjectID = require('mongodb').ObjectID;
+const ObjectID = require('mongodb').ObjectID ;
 const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
@@ -22,6 +22,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 client.connect(err => {
   console.log('connection err', err)
   const laptopsCollection = client.db("laptopsSell").collection("laptops");
+  const laptopsNewCollection = client.db("laptopsSell").collection("laptopsOrders");
   // perform actions on the collection object
   console.log('database connected')
 
@@ -42,12 +43,42 @@ client.connect(err => {
       })
   })
 
-  app.delete('deleteLaptop/:id', (req, res) => {
+  // 
+  app.post('/addLaptop', (req, res) => {
+    const laptopsOrder = req.body;
+    console.log('adding new event: ', laptopsOrder)
+    laptopsNewCollection.insertOne(laptopsOrder)
+      .then(result => {
+        console.log('inserted count', result.insertedCount)
+        res.send(result.insertedCount > 0)
+      })
+  })
+
+  app.delete('/deleteLaptop/:id', (req, res) => {
     const id = ObjectID(req.params.id);
     console.log('delete this', id);
-    laptopsCollection.findOneAndDelete({_id:id})
-    .then(documents => res.send(!!documents.value))
+    laptopsCollection.findOneAndDelete({_id: id})
+    .then(result => {
+      res.send(result.deleteCount>0)
+    })
     // console.log(documents)
+  })
+
+  app.get('/laptops/:id', (req, res) => {
+    const id = ObjectID(req.params.id);
+    laptopsCollection.find({_id: id})
+    .toArray((err, documents) => {
+      res.send(documents[0])
+    })
+    // console.log(documents)
+  })
+
+  app.get('/orderPreview', (req, res) => {
+    // console.log(req.query.email);
+    laptopsNewCollection.find({email: req.query.email})
+      .toArray((err, documents) => {
+        res.send(documents)
+      })
   })
 
   //   client.close();
