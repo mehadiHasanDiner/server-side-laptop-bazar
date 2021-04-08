@@ -73,8 +73,8 @@ client.connect(err => {
     // console.log(documents)
   })
 
-  app.get('/orderPreview', (req, res) => {
-    // console.log(req.query.email);
+  app.get('/orderPreviewPass', (req, res) => {
+    console.log(req.query.email);
     laptopsNewCollection.find({email: req.query.email})
       .toArray((err, documents) => {
         res.send(documents)
